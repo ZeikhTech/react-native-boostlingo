@@ -11,7 +11,7 @@ Pod::Spec.new do |s|
   s.authors      = package["author"]
 
   s.platforms    = { :ios => "9.0" }
-  s.source       = { :git => "http://zeikh.com.git", :tag => "#{s.version}" }
+  s.source       = { :git => "https://github.com/ZeikhTech/react-native-boostlingo.git", :tag => "#{s.version}" }
 
   
   s.source_files = "ios/**/*.{h,m,mm,swift}"

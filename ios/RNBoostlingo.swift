@@ -6,10 +6,21 @@ import Foundation
 class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
 
     private var boostlingo: Boostlingo?
+    private var hasListeners: Bool = false
     
     @objc
     override func supportedEvents() -> [String] {
         return ["callDidConnect", "callDidDisconnect", "callDidFailToConnect", "chatConnected", "chatDisconnected", "chatMessageRecieved"]
+    }
+    
+    @objc
+    override func startObserving() {
+        hasListeners = true
+    }
+    
+    @objc
+    override func stopObserving() {
+        hasListeners = false
     }
     
     @objc
@@ -167,41 +178,53 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
     
     // MARK: - BLCallDelegate
     func callDidConnect(_ call: BLCall) {
-        DispatchQueue.main.async {
-            // TODO
-            self.sendEvent(withName: "callDidConnect", body: self.callAsDictionary(call: call))
+        if (hasListeners) {
+            DispatchQueue.main.async {
+                // TODO
+                self.sendEvent(withName: "callDidConnect", body: self.callAsDictionary(call: call))
+            }
         }
     }
     
     func callDidDisconnect(_ error: Error?) {
-        DispatchQueue.main.async {
-             self.sendEvent(withName: "callDidDisconnect", body: error != nil ? error!.localizedDescription : nil)
+        if (hasListeners) {
+            DispatchQueue.main.async {
+                 self.sendEvent(withName: "callDidDisconnect", body: error != nil ? error!.localizedDescription : nil)
+            }
         }
     }
     
     func callDidFailToConnect(_ error: Error?) {
-        DispatchQueue.main.async {
-            self.sendEvent(withName: "callDidFailToConnect", body: error != nil ? error!.localizedDescription : nil)
+        if (hasListeners) {
+            DispatchQueue.main.async {
+                self.sendEvent(withName: "callDidFailToConnect", body: error != nil ? error!.localizedDescription : nil)
+            }
         }
     }
     
     // MARK: - BLChatDelegate
     func chatConnected() {
-        DispatchQueue.main.async {
-            self.sendEvent(withName: "chatConnected", body: nil)
+        if (hasListeners) {
+            DispatchQueue.main.async {
+                self.sendEvent(withName: "chatConnected", body: nil)
+            }
         }
     }
     
     func chatDisconnected() {
-        DispatchQueue.main.async {
-            self.sendEvent(withName: "chatDisconnected", body: nil)
+        if (hasListeners) {
+            DispatchQueue.main.async {
+                self.sendEvent(withName: "chatDisconnected", body: nil)
+            }
         }
     }
     
     func chatMessageRecieved(message: ChatMessage) {
-        DispatchQueue.main.async {
-            // TODO
-            self.sendEvent(withName: "chatDisconnected", body: message.text)
+        if (hasListeners) {
+            DispatchQueue.main.async {
+                // TODO
+                self.sendEvent(withName: "chatDisconnected", body: message.text)
+            }
         }
     }
 }

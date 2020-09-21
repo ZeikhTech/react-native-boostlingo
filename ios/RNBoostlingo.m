@@ -16,6 +16,8 @@
 
     RCT_EXTERN_METHOD(getCallDictionaries: resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 
+    RCT_EXTERN_METHOD(getProfile: resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+
     RCT_EXTERN_METHOD(makeVoiceCall:(NSDictionary *)request resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 
     RCT_EXTERN_METHOD(hangUp: resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)

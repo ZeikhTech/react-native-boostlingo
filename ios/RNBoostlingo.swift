@@ -118,6 +118,38 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
     }
     
     @objc
+    func getProfile(resolver resolve: @escaping RCTPromiseResolveBlock, reßjecter reject: @escaping RCTPromiseRejectBlock) {
+        do {
+            self.boostlingo!.getProfile { [weak self] (profile, error) in
+                guard let self = self else {
+                    return
+                }
+                
+                if error == nil {
+                    resolve(self.profileAsDictionary(profile: profile!))
+                }
+                else {
+                    let message: String
+                    switch error! {
+                    case BLError.apiCall(_, let statusCode):
+                        message = "\(error!.localizedDescription), statusCode: \(statusCode)"
+                        break
+                    default:
+                        message = error!.localizedDescription
+                        break
+                    }
+                    reject("error", "Encountered an error: \(message)", error)
+                }
+            }
+        } catch let error as NSError {
+            reject("error", error.domain, error)
+        } catch let error {
+            reject("error", "Error running Boostlingo SDK", error)
+            return
+        }
+    }
+    
+    @objc
     func makeVoiceCall(_ request: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         do {
             let callRequest = CallRequest(languageFromId: request["languageFromId"] as! Int, languageToId: request["languageToId"] as! Int, serviceTypeId: request["serviceTypeId"] as! Int, genderId: request["genderId"] as? Int, isVideo: false)
@@ -210,6 +242,19 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
         var dictionary = [String: Any]()
         dictionary["imageKey"] = imageInfo.imageKey
         dictionary["sizes"] = imageInfo.sizes
+        return dictionary
+    }
+    
+    private func profileAsDictionary(profile: Profile) -> [String: Any] {
+        var dictionary = [String: Any]()
+        dictionary["accountName"] = profile.accountName
+        dictionary["userAccountId"] = profile.userAccountId
+        dictionary["companyAccountId"] = profile.companyAccountId
+        dictionary["email"] = profile.email
+        dictionary["firstName"] = profile.firstName
+        dictionary["lastName"] = profile.lastName
+        dictionary["requiredName"] = profile.requiredName
+        dictionary["imageInfo"] = profile.imageInfo == nil ? nil : imageInfoAsDictionary(imageInfo: profile.imageInfo!)
         return dictionary
     }
     

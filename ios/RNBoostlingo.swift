@@ -24,14 +24,63 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
     }
     
     @objc
-    public func initialize(_ config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+    func getRegions(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolve(Boostlingo.getRegions())
+    }
+    
+    @objc
+    func initialize(_ config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         DispatchQueue.main.async {
-            self.initialize(config, resolver: resolve, rejecter: reject)
+            do {
+                let authToken: String = config["authToken"] as! String
+                let region: String = config["region"] as! String
+                
+                self.boostlingo = Boostlingo(authToken: authToken, region: region, logLevel: .debug)
+                self.boostlingo!.initialize() { [weak self] error in
+                    guard let self = self else {
+                        return
+                    }
+                    
+                    guard error == nil else {
+                        let message: String
+                        switch error! {
+                        case BLError.apiCall(_, let statusCode):
+                            message = "\(error!.localizedDescription), statusCode: \(statusCode)"
+                            break
+                        default:
+                            message = error!.localizedDescription
+                            break
+                        }
+                        reject("error", "Encountered an error: \(message)", error)
+                        return
+                    }
+                    
+                    resolve(nil)
+                }
+            } catch let error as NSError {
+                reject("error", error.domain, error)
+            } catch let error {
+                reject("error", "Error running Boostlingo SDK", error)
+                return
+            }
         }
     }
     
     @objc
-    public func getCallDictionaries(resolver resolve: @escaping RCTPromiseResolveBlock, reßjecter reject: @escaping RCTPromiseRejectBlock) {
+    func getCurrentCall(resolver resolve: @escaping RCTPromiseResolveBlock, reßjecter reject: @escaping RCTPromiseRejectBlock) {
+        do {
+            let currentCall = self.boostlingo!.currentCall
+            resolve(currentCall)
+        } catch let error as NSError {
+            reject("error", error.domain, error)
+        } catch let error {
+            reject("error", "Error running Boostlingo SDK", error)
+            return
+        }
+    }
+    
+    @objc
+    func getCallDictionaries(resolver resolve: @escaping RCTPromiseResolveBlock, reßjecter reject: @escaping RCTPromiseRejectBlock) {
         do {
             self.boostlingo!.getCallDictionaries() { [weak self] (callDictionaries, error) in
                 guard let self = self else {
@@ -64,7 +113,7 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
     }
     
     @objc
-    public func makeVoiceCall(_ request: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    func makeVoiceCall(_ request: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         do {
             let callRequest = CallRequest(languageFromId: request["languageFromId"] as! Int, languageToId: request["languageToId"] as! Int, serviceTypeId: request["serviceTypeId"] as! Int, genderId: request["genderId"] as? Int, isVideo: false)
 
@@ -93,7 +142,7 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
     }
     
     @objc
-    public func hangUp(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+    func hangUp(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         do {
             boostlingo!.hangUp() { [weak self] error in
                 guard let self = self else { return }
@@ -117,46 +166,9 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
     }
     
     @objc
-    public func dispose() {
+    func dispose() {
         boostlingo?.chatDelegate = nil
         boostlingo = nil
-    }
-    
-    private func initialize(config: NSDictionary,
-                     resolver resolve: @escaping RCTPromiseResolveBlock,
-                     rejecter reject: @escaping RCTPromiseRejectBlock) {
-        do {
-            let authToken: String = config["authToken"] as! String
-            let region: String = config["region"] as! String
-            
-            self.boostlingo = Boostlingo(authToken: authToken, region: region, logLevel: .debug)
-            self.boostlingo!.initialize() { [weak self] error in
-                guard let self = self else {
-                    return
-                }
-                
-                guard error == nil else {
-                    let message: String
-                    switch error! {
-                    case BLError.apiCall(_, let statusCode):
-                        message = "\(error!.localizedDescription), statusCode: \(statusCode)"
-                        break
-                    default:
-                        message = error!.localizedDescription
-                        break
-                    }
-                    reject("error", "Encountered an error: \(message)", error)
-                    return
-                }
-                
-                resolve(nil)
-            }
-        } catch let error as NSError {
-            reject("error", error.domain, error)
-        } catch let error {
-            reject("error", "Error running Boostlingo SDK", error)
-            return
-        }
     }
     
     private func callDictionariesAsDictionary(callDictionaries: CallDictionaries) throws -> [String: Any] {
@@ -168,12 +180,32 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
     }
     
     private func callAsDictionary(call: BLCall) -> [String: Any] {
-        var response = [String: Any]()
-        response["callId"] = call.callId
-        response["isVideo"] = call.isVideo
-        response["isInProgress"] = call.isInProgress
-        // TODO
-        return response
+        var dictionary = [String: Any]()
+        dictionary["callId"] = call.callId
+        dictionary["isVideo"] = call.isVideo
+        dictionary["isInProgress"] = call.isInProgress
+        dictionary["interlocutorInfo"] = call.interlocutorInfo == nil ? nil : interlocutorInfoAsDictionary(interlocutorInfo: call.interlocutorInfo!)
+        dictionary["isMuted"] = call.isMuted
+        return dictionary
+    }
+    
+    private func interlocutorInfoAsDictionary(interlocutorInfo: InterpreterInfo) -> [String: Any] {
+        var dictionary = [String: Any]()
+        dictionary["userAccountId"] = interlocutorInfo.userAccountId
+        dictionary["firstName"] = interlocutorInfo.firstName
+        dictionary["lastName"] = interlocutorInfo.lastName
+        dictionary["requiredName"] = interlocutorInfo.requiredName
+        dictionary["companyName"] = interlocutorInfo.companyName
+        dictionary["rating"] = interlocutorInfo.rating
+        dictionary["imageInfo"] = interlocutorInfo.imageInfo == nil ? nil : imageInfoAsDictionary(imageInfo: interlocutorInfo.imageInfo!)
+        return dictionary
+    }
+    
+    private func imageInfoAsDictionary(imageInfo: ImageInfo) -> [String: Any] {
+        var dictionary = [String: Any]()
+        dictionary["imageKey"] = imageInfo.imageKey
+        dictionary["sizes"] = imageInfo.sizes
+        return dictionary
     }
     
     // MARK: - BLCallDelegate

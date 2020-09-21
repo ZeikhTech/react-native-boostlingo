@@ -1,8 +1,8 @@
 PODS:
   - boost-for-react-native (1.63.0)
-  - BoostlingoSDK (0.3.0):
-    - TwilioVideo (~> 3.2.2)
-    - TwilioVoice (~> 5.2.1)
+  - BoostlingoSDK (0.4.0):
+    - TwilioVideo (~> 3.7.0)
+    - TwilioVoice (~> 6.0.0)
   - DoubleConversion (1.1.6)
   - FBLazyVector (0.62.2)
   - FBReactNativeSpec (0.62.2):
@@ -244,8 +244,8 @@ PODS:
     - React-cxxreact (= 0.62.2)
     - React-jsi (= 0.62.2)
     - ReactCommon/callinvoker (= 0.62.2)
-  - TwilioVideo (3.2.5)
-  - TwilioVoice (5.2.1)
+  - TwilioVideo (3.7.0)
+  - TwilioVoice (6.0.0)
   - Yoga (1.14.0)
 
 DEPENDENCIES:
@@ -340,7 +340,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   boost-for-react-native: 39c7adb57c4e60d6c5479dd8623128eb5b3f0f2c
-  BoostlingoSDK: 42272eaac5b3f19cf3b4e44e3f170a4af5cee347
+  BoostlingoSDK: 9e8d3ec7b1026782a56a02a2493a6aa3512a29be
   DoubleConversion: 5805e889d232975c086db112ece9ed034df7a0b2
   FBLazyVector: 4aab18c93cd9546e4bfed752b4084585eca8b245
   FBReactNativeSpec: 5465d51ccfeecb7faa12f9ae0024f2044ce4044e
@@ -365,8 +365,8 @@ SPEC CHECKSUMS:
   React-RCTText: fae545b10cfdb3d247c36c56f61a94cfd6dba41d
   React-RCTVibration: 4356114dbcba4ce66991096e51a66e61eda51256
   ReactCommon: ed4e11d27609d571e7eee8b65548efc191116eb3
-  TwilioVideo: dec31712aab578a783703c8f699c838bea4adf06
-  TwilioVoice: 99f69686a0962873114534ce561436117ed9ea35
+  TwilioVideo: ac463041934869f6e3794f22e57fbe8db1f62814
+  TwilioVoice: 83af918cdb316598f72ebf410fdb2971ec071d77
   Yoga: 3ebccbdd559724312790e7742142d062476b698e
 
 PODFILE CHECKSUM: 8f33224c335df4bfb5fd1aba955f9cc3a19b71b6

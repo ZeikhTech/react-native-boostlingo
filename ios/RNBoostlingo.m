@@ -20,6 +20,8 @@
 
     RCT_EXTERN_METHOD(getVoiceLanguages: resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 
+    RCT_EXTERN_METHOD(getVideoLanguages: resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+
     RCT_EXTERN_METHOD(makeVoiceCall:(NSDictionary *)request resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
 
     RCT_EXTERN_METHOD(hangUp: resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)

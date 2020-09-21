@@ -29,6 +29,11 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
     }
     
     @objc
+    func getVersion(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
+        resolve(Boostlingo.getVersion())
+    }
+    
+    @objc
     func initialize(_ config: NSDictionary, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) -> Void {
         DispatchQueue.main.async {
             do {

@@ -262,8 +262,7 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
                         reject("error", "Encountered an error: \(message)", error)
                         return
                     }
-                    let result = self.callAsDictionary(call: call!)
-                    resolve(result)
+                    resolve(self.callAsDictionary(call: call))
                 }
             }
         } catch let error as NSError {
@@ -296,6 +295,11 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
             reject("error", "Error running Boostlingo SDK", error)
             return
         }
+    }
+    
+    @objc
+    func toggleAudioRoute(_ toSpeaker: Bool) {
+        boostlingo!.toggleAudioRoute(toSpeaker: toSpeaker)
     }
     
     @objc

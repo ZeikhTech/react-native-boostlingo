@@ -72,10 +72,10 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
     }
     
     @objc
-    func getCurrentCall(resolver resolve: @escaping RCTPromiseResolveBlock, reßjecter reject: @escaping RCTPromiseRejectBlock) {
+    func getCurrentCall(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         do {
             let currentCall = self.boostlingo!.currentCall
-            resolve(currentCall)
+            resolve(callAsDictionary(call: currentCall))
         } catch let error as NSError {
             reject("error", error.domain, error)
         } catch let error {
@@ -85,7 +85,7 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
     }
     
     @objc
-    func getCallDictionaries(resolver resolve: @escaping RCTPromiseResolveBlock, reßjecter reject: @escaping RCTPromiseRejectBlock) {
+    func getCallDictionaries(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         do {
             self.boostlingo!.getCallDictionaries() { [weak self] (callDictionaries, error) in
                 guard let self = self else {
@@ -93,7 +93,7 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
                 }
                 
                 if error == nil {
-                    let result = try! self.callDictionariesAsDictionary(callDictionaries: callDictionaries!)
+                    let result = try! self.callDictionariesAsDictionary(callDictionaries: callDictionaries)
                     resolve(result)
                 }
                 else {
@@ -118,7 +118,7 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
     }
     
     @objc
-    func getProfile(resolver resolve: @escaping RCTPromiseResolveBlock, reßjecter reject: @escaping RCTPromiseRejectBlock) {
+    func getProfile(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
         do {
             self.boostlingo!.getProfile { [weak self] (profile, error) in
                 guard let self = self else {
@@ -126,7 +126,39 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
                 }
                 
                 if error == nil {
-                    resolve(self.profileAsDictionary(profile: profile!))
+                    resolve(self.profileAsDictionary(profile: profile))
+                }
+                else {
+                    let message: String
+                    switch error! {
+                    case BLError.apiCall(_, let statusCode):
+                        message = "\(error!.localizedDescription), statusCode: \(statusCode)"
+                        break
+                    default:
+                        message = error!.localizedDescription
+                        break
+                    }
+                    reject("error", "Encountered an error: \(message)", error)
+                }
+            }
+        } catch let error as NSError {
+            reject("error", error.domain, error)
+        } catch let error {
+            reject("error", "Error running Boostlingo SDK", error)
+            return
+        }
+    }
+    
+    @objc
+    func getVoiceLanguages(resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        do {
+            self.boostlingo!.getVoiceLanguages { [weak self] (languages, error) in
+                guard let self = self else {
+                    return
+                }
+                
+                if error == nil {
+                    resolve(languages?.map { l in self.languageAsDictionary(language: l)})
                 }
                 else {
                     let message: String
@@ -208,25 +240,49 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
         boostlingo = nil
     }
     
-    private func callDictionariesAsDictionary(callDictionaries: CallDictionaries) throws -> [String: Any] {
-        let data = try JSONEncoder().encode(callDictionaries)
-        guard let dictionary = try JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any] else {
-            throw NSError()
+    private func callDictionariesAsDictionary(callDictionaries: CallDictionaries?) -> [String: Any]? {
+        guard let callDictionaries = callDictionaries else {
+            return nil
+        }
+        guard let data = try? JSONEncoder().encode(callDictionaries) else {
+            return nil
+        }
+        guard let dictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any] else {
+            return nil
         }
         return dictionary
     }
     
-    private func callAsDictionary(call: BLCall) -> [String: Any] {
+    private func callAsDictionary(call: BLCall?) -> [String: Any]? {
+        guard let call = call else {
+            return nil
+        }
         var dictionary = [String: Any]()
         dictionary["callId"] = call.callId
         dictionary["isVideo"] = call.isVideo
         dictionary["isInProgress"] = call.isInProgress
-        dictionary["interlocutorInfo"] = call.interlocutorInfo == nil ? nil : interlocutorInfoAsDictionary(interlocutorInfo: call.interlocutorInfo!)
+        dictionary["interlocutorInfo"] = interlocutorInfoAsDictionary(interlocutorInfo: call.interlocutorInfo)
         dictionary["isMuted"] = call.isMuted
         return dictionary
     }
     
-    private func interlocutorInfoAsDictionary(interlocutorInfo: InterpreterInfo) -> [String: Any] {
+    private func languageAsDictionary(language: Language?) -> [String: Any]? {
+        guard let language = language else {
+            return nil
+        }
+        guard let data = try? JSONEncoder().encode(language) else {
+            return nil
+        }
+        guard let dictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any] else {
+            return nil
+        }
+        return dictionary
+    }
+    
+    private func interlocutorInfoAsDictionary(interlocutorInfo: InterpreterInfo?) -> [String: Any]? {
+        guard let interlocutorInfo = interlocutorInfo else {
+            return nil
+        }
         var dictionary = [String: Any]()
         dictionary["userAccountId"] = interlocutorInfo.userAccountId
         dictionary["firstName"] = interlocutorInfo.firstName
@@ -234,18 +290,24 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
         dictionary["requiredName"] = interlocutorInfo.requiredName
         dictionary["companyName"] = interlocutorInfo.companyName
         dictionary["rating"] = interlocutorInfo.rating
-        dictionary["imageInfo"] = interlocutorInfo.imageInfo == nil ? nil : imageInfoAsDictionary(imageInfo: interlocutorInfo.imageInfo!)
+        dictionary["imageInfo"] = imageInfoAsDictionary(imageInfo: interlocutorInfo.imageInfo)
         return dictionary
     }
     
-    private func imageInfoAsDictionary(imageInfo: ImageInfo) -> [String: Any] {
+    private func imageInfoAsDictionary(imageInfo: ImageInfo?) -> [String: Any]? {
+        guard let imageInfo = imageInfo else {
+            return nil
+        }
         var dictionary = [String: Any]()
         dictionary["imageKey"] = imageInfo.imageKey
         dictionary["sizes"] = imageInfo.sizes
         return dictionary
     }
     
-    private func profileAsDictionary(profile: Profile) -> [String: Any] {
+    private func profileAsDictionary(profile: Profile?) -> [String: Any]? {
+        guard let profile = profile else {
+            return nil
+        }
         var dictionary = [String: Any]()
         dictionary["accountName"] = profile.accountName
         dictionary["userAccountId"] = profile.userAccountId
@@ -254,7 +316,7 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
         dictionary["firstName"] = profile.firstName
         dictionary["lastName"] = profile.lastName
         dictionary["requiredName"] = profile.requiredName
-        dictionary["imageInfo"] = profile.imageInfo == nil ? nil : imageInfoAsDictionary(imageInfo: profile.imageInfo!)
+        dictionary["imageInfo"] = imageInfoAsDictionary(imageInfo: profile.imageInfo)
         return dictionary
     }
     

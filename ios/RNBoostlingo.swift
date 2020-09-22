@@ -492,8 +492,7 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
     func chatMessageRecieved(message: ChatMessage) {
         if (hasListeners) {
             DispatchQueue.main.async {
-                // TODO
-                self.sendEvent(withName: "chatDisconnected", body: message.text)
+                self.sendEvent(withName: "chatMessageRecieved", body: self.chatMessageAsDictionary(chatMessage: message))
             }
         }
     }

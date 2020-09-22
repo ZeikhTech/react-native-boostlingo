@@ -30,6 +30,8 @@
 
     RCT_EXTERN_METHOD(toggleAudioRoute:(BOOL *)toSpeaker)
 
+    RCT_EXTERN_METHOD(sendChatMessage:(NSString *)text resolver:(RCTPromiseResolveBlock)resolve rejecter:(RCTPromiseRejectBlock)reject)
+
     RCT_EXTERN_METHOD(dispose)
 
 @end

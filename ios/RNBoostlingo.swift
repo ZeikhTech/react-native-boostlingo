@@ -278,7 +278,7 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
         do {
             boostlingo!.hangUp() { [weak self] error in
                 guard let self = self else { return }
-                
+               
                 DispatchQueue.main.async {
                     if let error = error {
                         let message = error.localizedDescription
@@ -300,6 +300,30 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
     @objc
     func toggleAudioRoute(_ toSpeaker: Bool) {
         boostlingo!.toggleAudioRoute(toSpeaker: toSpeaker)
+    }
+    
+    @objc
+    func sendChatMessage(_ text: String, resolver resolve: @escaping RCTPromiseResolveBlock, rejecter reject: @escaping RCTPromiseRejectBlock) {
+        do {
+            boostlingo!.sendChatMessage(text: text) { [weak self] (chatMessage, error) in
+                guard let self = self else { return }
+               
+                DispatchQueue.main.async {
+                    if let error = error {
+                        let message = error.localizedDescription
+                        reject("error", "Encountered an error: \(message)", error)
+                        return
+                    } else {
+                        resolve(self.chatMessageAsDictionary(chatMessage: chatMessage))
+                    }
+                }
+            }
+        } catch let error as NSError {
+            reject("error", error.domain, error)
+        } catch let error {
+            reject("error", "Error running Boostlingo SDK", error)
+            return
+        }
     }
     
     @objc
@@ -398,6 +422,27 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
         guard let dictionary = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String: Any] else {
             return nil
         }
+        return dictionary
+    }
+    
+    private func chatMessageAsDictionary(chatMessage: ChatMessage?) -> [String: Any]? {
+        guard let chatMessage = chatMessage else {
+            return nil
+        }
+        var dictionary = [String: Any]()
+        dictionary["user"] = chatUserAsDictionary(chatUser: chatMessage.user)
+        dictionary["text"] = chatMessage.text
+        dictionary["sentTime"] = chatMessage.sentTime
+        return dictionary
+    }
+    
+    private func chatUserAsDictionary(chatUser: ChatUser?) -> [String: Any]? {
+        guard let chatUser = chatUser else {
+            return nil
+        }
+        var dictionary = [String: Any]()
+        dictionary["id"] = chatUser.id
+        dictionary["imageInfo"] = imageInfoAsDictionary(imageInfo: chatUser.imageInfo)
         return dictionary
     }
     

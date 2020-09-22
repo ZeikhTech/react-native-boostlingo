@@ -327,6 +327,14 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
     }
     
     @objc
+    func muteCall(_ isMuted: Bool) {
+        guard let currentCall = boostlingo!.currentCall else {
+            return
+        }
+        currentCall.isMuted = isMuted
+    }
+    
+    @objc
     func dispose() {
         boostlingo?.chatDelegate = nil
         boostlingo = nil
@@ -450,7 +458,6 @@ class RNBoostlingo: RCTEventEmitter, BLCallDelegate, BLChatDelegate {
     func callDidConnect(_ call: BLCall) {
         if (hasListeners) {
             DispatchQueue.main.async {
-                // TODO
                 self.sendEvent(withName: "callDidConnect", body: self.callAsDictionary(call: call))
             }
         }

@@ -1,9 +1,5 @@
-import { NativeModules } from 'react-native';
 
-type BoostlingoType = {
-  multiply(a: number, b: number): Promise<number>;
-};
+import { NativeEventEmitter, NativeModules } from 'react-native';
 
-const { Boostlingo } = NativeModules;
-
-export default Boostlingo as BoostlingoType;
+const { RNBoostlingo } = NativeModules;
+const rnBoostlingoEmitter = new NativeEventEmitter(RNBoostlingo);

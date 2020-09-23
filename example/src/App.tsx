@@ -1,17 +1,17 @@
 import * as React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
-import Boostlingo from 'react-native-boostlingo';
+// import RNBoostlingo from 'react-native-boostlingo';
 
 export default function App() {
-  const [result, setResult] = React.useState<number | undefined>();
+  // const [result, setResult] = React.useState<number | undefined>();
 
   React.useEffect(() => {
-    Boostlingo.multiply(3, 7).then(setResult);
+    // Boostlingo.multiply(3, 7).then(setResult);
   }, []);
 
   return (
     <View style={styles.container}>
-      <Text>Result: {result}</Text>
+      <Text>Result: Test</Text>
     </View>
   );
 }

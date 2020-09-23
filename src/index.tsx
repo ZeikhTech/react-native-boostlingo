@@ -1,5 +1,5 @@
 
-import { NativeEventEmitter, NativeModules } from 'react-native';
+// import { NativeEventEmitter, NativeModules } from 'react-native';
 
-const { RNBoostlingo } = NativeModules;
-const rnBoostlingoEmitter = new NativeEventEmitter(RNBoostlingo);
+// const { RNBoostlingo } = NativeModules;
+// const rnBoostlingoEmitter = new NativeEventEmitter(RNBoostlingo);
